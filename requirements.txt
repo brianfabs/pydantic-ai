@@ -15,7 +15,6 @@ google-generativeai>=0.3.0
 
 # Database and Storage
 sqlalchemy>=2.0.0
-sqlite3
 
 # Configuration Management
 pyyaml>=6.0
