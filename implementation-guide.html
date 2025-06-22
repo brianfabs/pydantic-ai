@@ -110,6 +110,7 @@
                         <a class="nav-link" href="#api-keys">Getting API Keys</a>
                         <a class="nav-link" href="#usage">Usage Guide</a>
                         <a class="nav-link" href="#integration">Integration</a>
+                        <a class="nav-link" href="#cursor-integration">Cursor Integration</a>
                         <a class="nav-link" href="#troubleshooting">Troubleshooting</a>
                         <a class="nav-link" href="#deployment">Deployment</a>
                     </nav>
@@ -469,6 +470,364 @@ curl http://localhost:8000/api/agents/your-agent-id/history?limit=10</code></pre
                             <li>Backup and restore</li>
                             <li>Deployment across environments</li>
                         </ul>
+                    </section>
+
+                    <!-- Cursor Integration -->
+                    <section id="cursor-integration" class="mb-5">
+                        <h2><i class="bi bi-cursor"></i> Cursor IDE Integration</h2>
+                        <p>Integrate the Pydantic AI Framework into your existing Cursor projects with ease!</p>
+                        
+                        <div class="alert alert-info">
+                            <h5><i class="bi bi-lightbulb"></i> Why Integrate with Cursor?</h5>
+                            <ul class="mb-0">
+                                <li>Add AI capabilities to existing projects without starting from scratch</li>
+                                <li>Leverage Cursor's AI features alongside the framework</li>
+                                <li>Maintain your existing project structure and workflow</li>
+                                <li>Use the framework as a library or service</li>
+                            </ul>
+                        </div>
+
+                        <h4>Integration Methods</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6><i class="bi bi-git"></i> Git Submodule (Recommended)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Keep the framework separate but accessible</p>
+                                        <ul class="small">
+                                            <li>Clean separation</li>
+                                            <li>Easy updates</li>
+                                            <li>Version control</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-success text-white">
+                                        <h6><i class="bi bi-files"></i> Copy Components</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Copy only what you need</p>
+                                        <ul class="small">
+                                            <li>Minimal footprint</li>
+                                            <li>Full control</li>
+                                            <li>No dependencies</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-info text-white">
+                                        <h6><i class="bi bi-robot"></i> Automated Script</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>One-command integration</p>
+                                        <ul class="small">
+                                            <li>Fully automated</li>
+                                            <li>Creates all files</li>
+                                            <li>Ready to use</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-4">Quick Integration (Automated)</h4>
+                        <p>The fastest way to integrate into your existing Cursor project:</p>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="step-number">1</div>
+                            <h5 class="mb-0">Navigate to Your Project</h5>
+                        </div>
+                        <div class="code-container">
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('cursor-nav')">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                            <pre id="cursor-nav"><code>cd /path/to/your/existing/project</code></pre>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="step-number">2</div>
+                            <h5 class="mb-0">Download Integration Script</h5>
+                        </div>
+                        <div class="code-container">
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('cursor-download')">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                            <pre id="cursor-download"><code>curl -O https://raw.githubusercontent.com/yourusername/pydantic-ai-framework/main/integrate.py</code></pre>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="step-number">3</div>
+                            <h5 class="mb-0">Run Integration</h5>
+                        </div>
+                        <div class="code-container">
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('cursor-integrate')">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                            <pre id="cursor-integrate"><code>python3 integrate.py --repo-url https://github.com/yourusername/pydantic-ai-framework.git</code></pre>
+                        </div>
+
+                        <div class="alert alert-success">
+                            <strong>🎉 Done!</strong> The script will:
+                            <ul class="mb-0">
+                                <li>Add the framework as a git submodule</li>
+                                <li>Install dependencies</li>
+                                <li>Create .cursorrules and composer.md files</li>
+                                <li>Update your .env and requirements.txt</li>
+                                <li>Generate an example integration file</li>
+                            </ul>
+                        </div>
+
+                        <h4>Manual Submodule Integration</h4>
+                        <p>For more control over the integration process:</p>
+                        
+                        <div class="code-container">
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('manual-submodule')">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                            <pre id="manual-submodule"><code># Add framework as submodule
+git submodule add https://github.com/yourusername/pydantic-ai-framework.git ai-framework
+
+# Initialize and update
+git submodule update --init --recursive
+
+# Install dependencies
+cd ai-framework
+python3 -m pip install -r requirements.txt
+
+# Copy environment template
+cp .env.example .env
+# Edit .env and add your API keys</code></pre>
+                        </div>
+
+                        <h4>Cursor-Specific Files</h4>
+                        <p>The integration creates special files to optimize your Cursor workflow:</p>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6><i class="bi bi-file-code"></i> .cursorrules</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Provides context to Cursor's AI about:</p>
+                                        <ul class="small">
+                                            <li>Agent management patterns</li>
+                                            <li>Code structure and conventions</li>
+                                            <li>Best practices for AI integration</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6><i class="bi bi-file-text"></i> composer.md</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Instructions for Cursor Composer:</p>
+                                        <ul class="small">
+                                            <li>Common AI integration tasks</li>
+                                            <li>File locations and structure</li>
+                                            <li>Code generation patterns</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>Usage in Your Project</h4>
+                        <p>Once integrated, use the framework in your existing code:</p>
+
+                        <div class="code-container">
+                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('cursor-usage')">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                            <pre id="cursor-usage"><code># Import the framework (submodule method)
+import sys
+sys.path.append('./ai-framework')
+
+from ai_framework.utils.agent_manager import AgentManager
+
+# Create and use an agent
+async def add_ai_to_my_app():
+    agent_manager = AgentManager()
+    
+    # Create agent configuration
+    config = {
+        "name": "My App Assistant",
+        "system_prompt": "You help users with my application",
+        "model_provider": "openai",
+        "model_name": "gpt-3.5-turbo"
+    }
+    
+    # Create and use the agent
+    agent_id = await agent_manager.create_agent(config)
+    agent = await agent_manager.get_agent_instance(agent_id)
+    
+    result = await agent.run("Help the user with their question")
+    return result.data</code></pre>
+                        </div>
+
+                        <h4>Integration Examples</h4>
+                        
+                        <div class="accordion" id="cursorExamplesAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#web-app-example">
+                                        <i class="bi bi-globe"></i> &nbsp; Web Application Integration
+                                    </button>
+                                </h2>
+                                <div id="web-app-example" class="accordion-collapse collapse show" data-bs-parent="#cursorExamplesAccordion">
+                                    <div class="accordion-body">
+                                        <div class="code-container">
+                                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('web-app-code')">
+                                                <i class="bi bi-clipboard"></i> Copy
+                                            </button>
+                                            <pre id="web-app-code"><code># Add to your Flask/FastAPI app
+from ai_framework.utils.agent_manager import AgentManager
+
+app = FastAPI()  # or Flask()
+agent_manager = AgentManager()
+
+@app.post("/ai-chat")
+async def ai_chat(message: str, user_id: str):
+    try:
+        # Get or create user-specific agent
+        agent = await agent_manager.get_agent_instance("customer-support")
+        result = await agent.run(f"User {user_id}: {message}")
+        return {"response": result.data, "success": True}
+    except Exception as e:
+        return {"error": str(e), "success": False}</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#data-processing-example">
+                                        <i class="bi bi-database"></i> &nbsp; Data Processing Integration
+                                    </button>
+                                </h2>
+                                <div id="data-processing-example" class="accordion-collapse collapse" data-bs-parent="#cursorExamplesAccordion">
+                                    <div class="accordion-body">
+                                        <div class="code-container">
+                                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('data-processing-code')">
+                                                <i class="bi bi-clipboard"></i> Copy
+                                            </button>
+                                            <pre id="data-processing-code"><code># Add AI analysis to your data pipeline
+import asyncio
+from ai_framework.utils.agent_manager import AgentManager
+
+async def analyze_data_with_ai(data_batch):
+    agent_manager = AgentManager()
+    analyst_agent = await agent_manager.get_agent_instance("data-analyst")
+    
+    results = []
+    for item in data_batch:
+        prompt = f"Analyze this data point: {item}"
+        analysis = await analyst_agent.run(prompt)
+        results.append({
+            "original": item,
+            "analysis": analysis.data,
+            "timestamp": datetime.now()
+        })
+    
+    return results
+
+# Use in your existing pipeline
+processed_data = asyncio.run(analyze_data_with_ai(your_data))</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cli-example">
+                                        <i class="bi bi-terminal"></i> &nbsp; CLI Tool Integration
+                                    </button>
+                                </h2>
+                                <div id="cli-example" class="accordion-collapse collapse" data-bs-parent="#cursorExamplesAccordion">
+                                    <div class="accordion-body">
+                                        <div class="code-container">
+                                            <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('cli-code')">
+                                                <i class="bi bi-clipboard"></i> Copy
+                                            </button>
+                                            <pre id="cli-code"><code># Add AI commands to your CLI tool
+import click
+import asyncio
+from ai_framework.utils.agent_manager import AgentManager
+
+@click.group()
+def cli():
+    """Your existing CLI tool with AI capabilities"""
+    pass
+
+@cli.command()
+@click.option('--agent', default='general-assistant')
+@click.option('--message', prompt='Your message')
+def ask(agent, message):
+    """Ask an AI agent a question"""
+    async def run_query():
+        agent_manager = AgentManager()
+        agent_instance = await agent_manager.get_agent_instance(agent)
+        result = await agent_instance.run(message)
+        click.echo(f"🤖 {result.data}")
+    
+    asyncio.run(run_query())
+
+if __name__ == '__main__':
+    cli()</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4>Cursor Workflow Tips</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6><i class="bi bi-magic"></i> Use Cursor's AI</h6>
+                                        <ul class="small">
+                                            <li>Ask Cursor to create agent configurations</li>
+                                            <li>Generate system prompts with AI assistance</li>
+                                            <li>Let Cursor help with tool definitions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6><i class="bi bi-bug"></i> Debugging</h6>
+                                        <ul class="small">
+                                            <li>Set breakpoints in agent_manager.py</li>
+                                            <li>Use Cursor's variable inspection</li>
+                                            <li>Debug AI responses step by step</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3">
+                            <h6><i class="bi bi-exclamation-triangle"></i> Important Notes</h6>
+                            <ul class="mb-0">
+                                <li>Make sure to add your API keys to the .env file</li>
+                                <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
+                                <li>Test the integration with the generated example file</li>
+                                <li>See <code>CURSOR_INTEGRATION.md</code> for detailed documentation</li>
+                            </ul>
+                        </div>
                     </section>
 
                     <!-- Troubleshooting -->
