@@ -1,0 +1,36 @@
+# Core Pydantic AI Framework
+pydantic-ai[examples]>=0.0.14
+pydantic>=2.0.0
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+jinja2>=3.1.0
+python-multipart>=0.0.6
+
+# LLM Providers
+openai>=1.0.0
+anthropic>=0.7.0
+google-generativeai>=0.3.0
+
+# Database and Storage
+sqlalchemy>=2.0.0
+sqlite3
+
+# Configuration Management
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Utilities
+httpx>=0.25.0
+rich>=13.0.0
+typer>=0.9.0
+
+# Development and Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+isort>=5.12.0
+
+# Optional: Monitoring and Logging
+logfire>=0.20.0

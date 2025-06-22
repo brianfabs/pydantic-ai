@@ -1,0 +1,550 @@
+{% extends "base.html" %}
+
+{% block title %}Agents - Pydantic AI Agent Framework{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-people"></i>
+                AI Agents
+            </h1>
+            <div>
+                <button class="btn btn-success" onclick="showCreateAgentModal()">
+                    <i class="bi bi-plus-circle"></i>
+                    Create New Agent
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agents Grid -->
+<div class="row" id="agentsContainer">
+    {% if agents %}
+        {% for agent in agents %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 agent-card" data-agent-id="{{ agent.id }}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="bi bi-robot text-primary"></i>
+                        {{ agent.name }}
+                    </h6>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/chat/{{ agent.id }}">
+                                <i class="bi bi-chat"></i> Chat
+                            </a></li>
+                            <li><a class="dropdown-item" href="/agent/{{ agent.id }}">
+                                <i class="bi bi-eye"></i> View Details
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="editAgent('{{ agent.id }}')">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportAgent('{{ agent.id }}')">
+                                <i class="bi bi-download"></i> Export
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteAgent('{{ agent.id }}')">
+                                <i class="bi bi-trash"></i> Delete
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ agent.description }}</p>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">Model:</small>
+                        <span class="badge bg-secondary">{{ agent.model_provider }}/{{ agent.model_name }}</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">Status:</small>
+                        {% if agent.enabled %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Active
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-pause-circle"></i> Inactive
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if agent.tools %}
+                    <div class="mb-2">
+                        <small class="text-muted">Tools:</small>
+                        {% for tool in agent.tools %}
+                            <span class="badge bg-info">{{ tool }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-primary btn-sm" onclick="location.href='/chat/{{ agent.id }}'">
+                            <i class="bi bi-chat"></i> Chat
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleAgent('{{ agent.id }}')">
+                            {% if agent.enabled %}
+                                <i class="bi bi-pause"></i> Disable
+                            {% else %}
+                                <i class="bi bi-play"></i> Enable
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-robot display-1 text-muted"></i>
+                <h3 class="mt-3">No Agents Created Yet</h3>
+                <p class="text-muted">Create your first AI agent to get started with the framework.</p>
+                <button class="btn btn-primary btn-lg" onclick="showCreateAgentModal()">
+                    <i class="bi bi-plus-circle"></i>
+                    Create Your First Agent
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Create/Edit Agent Modal -->
+<div class="modal fade" id="agentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agentModalTitle">
+                    <i class="bi bi-plus-circle"></i>
+                    Create New Agent
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="agentForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agentName" class="form-label">Agent Name *</label>
+                                <input type="text" class="form-control" id="agentName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agentEnabled" class="form-label">Status</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="agentEnabled" checked>
+                                    <label class="form-check-label" for="agentEnabled">
+                                        Enabled
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="agentDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="agentDescription" rows="2" placeholder="Describe what this agent does..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="agentSystemPrompt" class="form-label">System Prompt *</label>
+                        <textarea class="form-control" id="agentSystemPrompt" rows="4" required placeholder="You are a helpful AI assistant..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agentProvider" class="form-label">Model Provider *</label>
+                                <select class="form-select" id="agentProvider" required onchange="updateModelOptions()">
+                                    <option value="">Select Provider</option>
+                                    {% for provider, models in model_providers.items() %}
+                                        <option value="{{ provider }}">{{ provider|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agentModel" class="form-label">Model *</label>
+                                <select class="form-select" id="agentModel" required>
+                                    <option value="">Select Model</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agentTemperature" class="form-label">Temperature</label>
+                                <input type="range" class="form-range" id="agentTemperature" min="0" max="1" step="0.1" value="0.7">
+                                <div class="d-flex justify-content-between">
+                                    <small>0 (Focused)</small>
+                                    <small id="temperatureValue">0.7</small>
+                                    <small>1 (Creative)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="agentMaxTokens" class="form-label">Max Tokens</label>
+                                <input type="number" class="form-control" id="agentMaxTokens" value="1000" min="1" max="4000">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tools</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="toolWebSearch" value="web_search">
+                                    <label class="form-check-label" for="toolWebSearch">
+                                        Web Search
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="toolCalculator" value="calculator">
+                                    <label class="form-check-label" for="toolCalculator">
+                                        Calculator
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="toolFileReader" value="file_reader">
+                                    <label class="form-check-label" for="toolFileReader">
+                                        File Reader
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveAgentBtn">
+                        <i class="bi bi-check-circle"></i>
+                        Create Agent
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Template Selection Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-collection"></i>
+                    Choose a Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="templatesGrid">
+                    <!-- Templates will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-outline-primary" onclick="skipTemplate()">
+                    Skip & Create Blank
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentAgentId = null;
+let modelProviders = {{ model_providers|tojson|safe }};
+
+// Temperature slider
+document.getElementById('agentTemperature').addEventListener('input', function() {
+    document.getElementById('temperatureValue').textContent = this.value;
+});
+
+// Form submission
+document.getElementById('agentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await saveAgent();
+});
+
+function showCreateAgentModal() {
+    // Show template selection first
+    loadTemplates();
+    const templateModal = new bootstrap.Modal(document.getElementById('templateModal'));
+    templateModal.show();
+}
+
+async function loadTemplates() {
+    try {
+        const response = await fetch('/api/templates');
+        const data = await response.json();
+        
+        if (data.success) {
+            const grid = document.getElementById('templatesGrid');
+            grid.innerHTML = '';
+            
+            data.templates.forEach(template => {
+                const templateCard = `
+                    <div class="col-md-6 mb-3">
+                        <div class="card template-card" onclick="selectTemplate('${template.template_id}')">
+                            <div class="card-body">
+                                <h6 class="card-title">${template.name}</h6>
+                                <p class="card-text">${template.description}</p>
+                                <small class="text-muted">
+                                    ${template.model_provider} / ${template.model_name}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += templateCard;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading templates:', error);
+    }
+}
+
+function selectTemplate(templateId) {
+    // Load template data and populate form
+    fetch(`/api/templates`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const template = data.templates.find(t => t.template_id === templateId);
+                if (template) {
+                    populateAgentForm(template);
+                    bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
+                    showAgentModal();
+                }
+            }
+        });
+}
+
+function skipTemplate() {
+    bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
+    showAgentModal();
+}
+
+function showAgentModal() {
+    const modal = new bootstrap.Modal(document.getElementById('agentModal'));
+    modal.show();
+}
+
+function populateAgentForm(data) {
+    document.getElementById('agentName').value = data.name || '';
+    document.getElementById('agentDescription').value = data.description || '';
+    document.getElementById('agentSystemPrompt').value = data.system_prompt || '';
+    document.getElementById('agentProvider').value = data.model_provider || '';
+    document.getElementById('agentTemperature').value = data.temperature || 0.7;
+    document.getElementById('agentMaxTokens').value = data.max_tokens || 1000;
+    document.getElementById('agentEnabled').checked = data.enabled !== false;
+    
+    updateModelOptions();
+    setTimeout(() => {
+        document.getElementById('agentModel').value = data.model_name || '';
+    }, 100);
+    
+    // Set tools
+    const tools = data.tools || [];
+    document.getElementById('toolWebSearch').checked = tools.includes('web_search');
+    document.getElementById('toolCalculator').checked = tools.includes('calculator');
+    document.getElementById('toolFileReader').checked = tools.includes('file_reader');
+    
+    document.getElementById('temperatureValue').textContent = data.temperature || 0.7;
+}
+
+function updateModelOptions() {
+    const provider = document.getElementById('agentProvider').value;
+    const modelSelect = document.getElementById('agentModel');
+    
+    modelSelect.innerHTML = '<option value="">Select Model</option>';
+    
+    if (provider && modelProviders[provider]) {
+        modelProviders[provider].forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+    }
+}
+
+async function saveAgent() {
+    const formData = {
+        name: document.getElementById('agentName').value,
+        description: document.getElementById('agentDescription').value,
+        system_prompt: document.getElementById('agentSystemPrompt').value,
+        model_provider: document.getElementById('agentProvider').value,
+        model_name: document.getElementById('agentModel').value,
+        temperature: parseFloat(document.getElementById('agentTemperature').value),
+        max_tokens: parseInt(document.getElementById('agentMaxTokens').value),
+        enabled: document.getElementById('agentEnabled').checked,
+        tools: []
+    };
+    
+    // Collect selected tools
+    if (document.getElementById('toolWebSearch').checked) formData.tools.push('web_search');
+    if (document.getElementById('toolCalculator').checked) formData.tools.push('calculator');
+    if (document.getElementById('toolFileReader').checked) formData.tools.push('file_reader');
+    
+    try {
+        const url = currentAgentId ? `/api/agents/${currentAgentId}` : '/api/agents';
+        const method = currentAgentId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(`Agent ${currentAgentId ? 'updated' : 'created'} successfully!`, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('agentModal')).hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert('Error saving agent: ' + result.detail, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error saving agent: ' + error.message, 'danger');
+    }
+}
+
+async function editAgent(agentId) {
+    try {
+        const response = await fetch(`/api/agents/${agentId}/export`);
+        const data = await response.json();
+        
+        if (data.success) {
+            currentAgentId = agentId;
+            populateAgentForm(data.config);
+            
+            document.getElementById('agentModalTitle').innerHTML = '<i class="bi bi-pencil"></i> Edit Agent';
+            document.getElementById('saveAgentBtn').innerHTML = '<i class="bi bi-check-circle"></i> Update Agent';
+            
+            showAgentModal();
+        }
+    } catch (error) {
+        showAlert('Error loading agent: ' + error.message, 'danger');
+    }
+}
+
+async function toggleAgent(agentId) {
+    try {
+        const response = await fetch(`/api/agents/${agentId}/toggle`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert('Error toggling agent: ' + result.detail, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error toggling agent: ' + error.message, 'danger');
+    }
+}
+
+async function deleteAgent(agentId) {
+    if (!confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/agents/${agentId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('Agent deleted successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert('Error deleting agent: ' + result.detail, 'danger');
+        }
+    } catch (error) {
+        showAlert('Error deleting agent: ' + error.message, 'danger');
+    }
+}
+
+async function exportAgent(agentId) {
+    try {
+        const response = await fetch(`/api/agents/${agentId}/export`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `agent-${data.config.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('Agent configuration exported!', 'success');
+        }
+    } catch (error) {
+        showAlert('Error exporting agent: ' + error.message, 'danger');
+    }
+}
+
+// Reset form when modal is hidden
+document.getElementById('agentModal').addEventListener('hidden.bs.modal', function() {
+    currentAgentId = null;
+    document.getElementById('agentForm').reset();
+    document.getElementById('agentModalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Create New Agent';
+    document.getElementById('saveAgentBtn').innerHTML = '<i class="bi bi-check-circle"></i> Create Agent';
+    document.getElementById('temperatureValue').textContent = '0.7';
+});
+</script>
+
+<style>
+.agent-card {
+    transition: transform 0.2s;
+}
+
+.agent-card:hover {
+    transform: translateY(-2px);
+}
+
+.template-card {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.template-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

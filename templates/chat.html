@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ agent.name }} - Pydantic AI Agent Framework{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>
+                    <i class="bi bi-chat-dots"></i>
+                    Chat with {{ agent.name }}
+                </h1>
+                <p class="text-muted mb-0">{{ agent.description }}</p>
+            </div>
+            <div>
+                <a href="/agent/{{ agent.id }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-eye"></i>
+                    View Details
+                </a>
+                <a href="/agents" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Agents
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Chat Interface -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-robot text-primary"></i>
+                    {{ agent.name }}
+                </h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearChat()" title="Clear Chat">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportChat()" title="Export Chat">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                <!-- Chat Messages Container -->
+                <div id="chatContainer" class="chat-container p-3">
+                    <div class="chat-message assistant">
+                        <div class="message-header">{{ agent.name }}</div>
+                        <div class="message-content">
+                            Hello! I'm {{ agent.name }}. {{ agent.description }} How can I help you today?
+                        </div>
+                        <div class="message-time">Just now</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <!-- Chat Input -->
+                <form id="chatForm" class="d-flex gap-2">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        class="form-control" 
+                        placeholder="Type your message here..." 
+                        autocomplete="off"
+                        disabled
+                    >
+                    <button type="submit" id="sendButton" class="btn btn-primary" disabled>
+                        <i class="bi bi-send"></i>
+                    </button>
+                </form>
+                
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="mt-2" style="display: none;">
+                    <small class="text-muted">
+                        <i class="bi bi-three-dots"></i>
+                        {{ agent.name }} is typing...
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Agent Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Agent Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Model:</strong>
+                    <br>
+                    <span class="badge bg-secondary">{{ agent.model_provider }}/{{ agent.model_name }}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Temperature:</strong>
+                    <br>
+                    <span class="text-muted">{{ agent.temperature }}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Max Tokens:</strong>
+                    <br>
+                    <span class="text-muted">{{ agent.max_tokens }}</span>
+                </div>
+                
+                {% if agent.tools %}
+                <div class="mb-3">
+                    <strong>Available Tools:</strong>
+                    <br>
+                    {% for tool in agent.tools %}
+                        <span class="badge bg-info me-1">{{ tool }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    <br>
+                    {% if agent.enabled %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle"></i> Active
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-pause-circle"></i> Inactive
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Session Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h6 class="text-muted">Messages</h6>
+                            <p class="mb-0" id="messageCount">0</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-muted">Tokens Used</h6>
+                        <p class="mb-0" id="tokenCount">0</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h6 class="text-muted">Avg Response</h6>
+                            <p class="mb-0" id="avgResponse">-</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-muted">Session Time</h6>
+                        <p class="mb-0" id="sessionTime">0:00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning"></i>
+                    Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="sendQuickMessage('Hello! Can you introduce yourself?')">
+                        <i class="bi bi-person"></i>
+                        Introduction
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="sendQuickMessage('What can you help me with?')">
+                        <i class="bi bi-question-circle"></i>
+                        Capabilities
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="sendQuickMessage('Can you give me an example of what you do?')">
+                        <i class="bi bi-lightbulb"></i>
+                        Example
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let messageCount = 0;
+let totalTokens = 0;
+let sessionStartTime = Date.now();
+let responseTimes = [];
+
+// Initialize chat
+document.addEventListener('DOMContentLoaded', function() {
+    initializeChat();
+    startSessionTimer();
+});
+
+function initializeChat() {
+    const agentEnabled = {{ agent.enabled|tojson|safe }};
+    
+    if (agentEnabled) {
+        enableChat();
+    } else {
+        disableChat('Agent is currently disabled');
+    }
+    
+    // Load conversation history
+    loadConversationHistory();
+    
+    // Set up form submission
+    document.getElementById('chatForm').addEventListener('submit', handleMessageSubmit);
+    
+    // Set up enter key handling
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleMessageSubmit(e);
+        }
+    });
+}
+
+function enableChat() {
+    document.getElementById('messageInput').disabled = false;
+    document.getElementById('sendButton').disabled = false;
+    document.getElementById('messageInput').placeholder = 'Type your message here...';
+}
+
+function disableChat(reason) {
+    document.getElementById('messageInput').disabled = true;
+    document.getElementById('sendButton').disabled = true;
+    document.getElementById('messageInput').placeholder = reason;
+}
+
+async function loadConversationHistory() {
+    try {
+        const response = await fetch(`/api/agents/{{ agent.id }}/history?limit=20`);
+        const data = await response.json();
+        
+        if (data.success && data.history.length > 0) {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = ''; // Clear welcome message
+            
+            data.history.reverse().forEach(conversation => {
+                addMessageToChat('user', conversation.user_message, conversation.user_timestamp);
+                addMessageToChat('assistant', conversation.agent_response, conversation.agent_timestamp);
+                
+                if (conversation.usage) {
+                    totalTokens += conversation.usage.total_tokens || 0;
+                }
+            });
+            
+            messageCount = data.history.length;
+            updateStatistics();
+            scrollToBottom();
+        }
+    } catch (error) {
+        console.error('Error loading conversation history:', error);
+    }
+}
+
+async function handleMessageSubmit(e) {
+    e.preventDefault();
+    
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message) return;
+    
+    // Clear input and disable form
+    messageInput.value = '';
+    disableChat('Sending...');
+    
+    // Add user message to chat
+    const userTimestamp = new Date().toISOString();
+    addMessageToChat('user', message, userTimestamp);
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    const startTime = Date.now();
+    
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                agent_id: '{{ agent.id }}',
+                message: message
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const responseTime = Date.now() - startTime;
+            responseTimes.push(responseTime);
+            
+            // Add assistant response to chat
+            const assistantTimestamp = new Date().toISOString();
+            addMessageToChat('assistant', data.response, assistantTimestamp);
+            
+            // Update statistics
+            messageCount++;
+            if (data.usage) {
+                totalTokens += data.usage.total_tokens || 0;
+            }
+            updateStatistics();
+            
+        } else {
+            addMessageToChat('system', 'Error: ' + (data.error || 'Failed to get response'), new Date().toISOString());
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        addMessageToChat('system', 'Error: Failed to send message. Please try again.', new Date().toISOString());
+    } finally {
+        hideTypingIndicator();
+        enableChat();
+        document.getElementById('messageInput').focus();
+    }
+}
+
+function addMessageToChat(role, content, timestamp) {
+    const chatContainer = document.getElementById('chatContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${role}`;
+    
+    const time = new Date(timestamp).toLocaleTimeString();
+    const roleName = role === 'user' ? 'You' : (role === 'assistant' ? '{{ agent.name }}' : 'System');
+    
+    messageDiv.innerHTML = `
+        <div class="message-header">${roleName}</div>
+        <div class="message-content">${escapeHtml(content)}</div>
+        <div class="message-time">${time}</div>
+    `;
+    
+    chatContainer.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'block';
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'none';
+}
+
+function scrollToBottom() {
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function updateStatistics() {
+    document.getElementById('messageCount').textContent = messageCount;
+    document.getElementById('tokenCount').textContent = totalTokens;
+    
+    if (responseTimes.length > 0) {
+        const avgTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+        document.getElementById('avgResponse').textContent = (avgTime / 1000).toFixed(1) + 's';
+    }
+}
+
+function startSessionTimer() {
+    setInterval(() => {
+        const elapsed = Date.now() - sessionStartTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        document.getElementById('sessionTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }, 1000);
+}
+
+function sendQuickMessage(message) {
+    document.getElementById('messageInput').value = message;
+    document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+}
+
+function clearChat() {
+    if (confirm('Are you sure you want to clear the chat? This will only clear the display, not the conversation history.')) {
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.innerHTML = `
+            <div class="chat-message assistant">
+                <div class="message-header">{{ agent.name }}</div>
+                <div class="message-content">
+                    Chat cleared. How can I help you?
+                </div>
+                <div class="message-time">Just now</div>
+            </div>
+        `;
+        
+        // Reset session statistics
+        messageCount = 0;
+        totalTokens = 0;
+        responseTimes = [];
+        sessionStartTime = Date.now();
+        updateStatistics();
+    }
+}
+
+function exportChat() {
+    const chatContainer = document.getElementById('chatContainer');
+    const messages = chatContainer.querySelectorAll('.chat-message');
+    
+    let chatText = `Chat with {{ agent.name }}\n`;
+    chatText += `Exported on: ${new Date().toLocaleString()}\n`;
+    chatText += `${'='.repeat(50)}\n\n`;
+    
+    messages.forEach(message => {
+        const header = message.querySelector('.message-header').textContent;
+        const content = message.querySelector('.message-content').textContent;
+        const time = message.querySelector('.message-time').textContent;
+        
+        chatText += `[${time}] ${header}:\n${content}\n\n`;
+    });
+    
+    const blob = new Blob([chatText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-{{ agent.name.replace(' ', '-').lower() }}-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showAlert('Chat exported successfully!', 'success');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}
